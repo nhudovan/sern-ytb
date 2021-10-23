@@ -25,6 +25,11 @@ let handleLogin = async (req, res) =>{
     })
 }
 
+let  handleGetAllUser = async(req, res) =>{
+    
+}
+
 module.exports ={
     handleLogin,
+    handleGetAllUser,
 }

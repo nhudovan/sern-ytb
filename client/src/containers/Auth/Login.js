@@ -4,7 +4,7 @@ import { push } from "connected-react-router";
 import * as actions from "../../store/actions";
 import './Login.scss';
 import { FormattedMessage } from 'react-intl';
-import {handleLogin} from '../../services/userService';
+import {handleLoginApi} from '../../services/userService';
 
 class Login extends Component {
     constructor(props) {
@@ -13,28 +13,44 @@ class Login extends Component {
             username: '',
             password: '',
             isShowPassword: false,
+            errMessage:'',
         }
        
     }
 
-    handleLogin = async (event) => {
-         console.log(this.state.username,this.state.password);
+    handleLogin = async () => {
+        this.setState({
+            errMessage:''
+        });
          try {
-            await handleLogin(this.state.username,this.state.password);
+          let data =  await handleLoginApi(this.state.username,this.state.password);
+          if(data && data.errCode !==0){
+              
+            this.setState({
+                errMessage:data.message,
+            })
+          }
+          if(data&&data.errCode === 0){
+            this.props.userLoginSuccess(data.user);
+              
+          }
+
          } catch (error) {
-             console.log(error)
-         }
-        
-
-        
+             if(error.response){
+                 if(error.response.data){
+                    this.setState({
+                        errMessage: error.response.data.message,
+                    });
+                 }
+             }  
+         }     
     }
-
+   
     handleShowHidePassword = (event) =>{
         this.setState({
             isShowPassword: !this.state.isShowPassword,
         })
     }
-
 
     render() {
         return (
@@ -71,6 +87,11 @@ class Login extends Component {
                             </div>
                             
                         </div>
+
+                        <div className="col-12" style={{color:"red"}}>
+                            {this.state.errMessage}
+                        </div>
+
                         <div className="col-12">
                                 <button 
                                 className="btn-login"
@@ -106,8 +127,9 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         navigate: (path) => dispatch(push(path)),
-        adminLoginSuccess: (adminInfo) => dispatch(actions.adminLoginSuccess(adminInfo)),
-        adminLoginFail: () => dispatch(actions.adminLoginFail()),
+        
+        // userLoginFail: () => dispatch(actions.userLoginFail()),
+        userLoginSuccess:(userInfo) => dispatch(actions.userLoginSuccess(userInfo)),
     };
 };
 
